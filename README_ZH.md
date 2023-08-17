@@ -15,14 +15,43 @@ FaceChain是一个可以用来打造个人数字形象的深度学习模型工�
 
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
-![image](resources/example1.jpg)
+![image](resources/git_cover_CH.jpg)
 
-![image](resources/example2.jpg)
-
-![image](resources/example3.jpg)
 
 # News
-- Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
+- 支持即插即用的风格LoRA模型！ 参考 [功能特性](#功能特性)    (2023-08-16)
+- 新增个性化prompt模块！    参考 [功能特性](#功能特性)    (2023-08-16)
+- Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)   (2023-08-15)
+
+
+# 待办事项
+- 现成风格模型即插即用（以C站风格模型为例）   --开发中
+- 增加个性化prompt模块（试穿不同的衣服等）   --开发中
+- 基于ControlNet或Composer等方式，支持指定poses
+- 增加个性化美颜特效模块
+- 基模升级，SD 1.5升级为SDXL
+- 兼容Colab使用                         --已完成
+- 兼容WebUI使用
+
+
+# 功能特性
+- 现成风格模型即插即用
+  - 描述：支持用户在训练时选择不同的风格模型，以生成不同风格的个人数字形象
+  - 安装：参考 [安装指南](#安装指南)
+  - 用法：在“形象体验”页面选择“凤冠霞帔”风格。
+  - 效果
+  ![image](resources/style_lora_xiapei.jpg)
+  - 相关资源
+    - 凤冠霞帔： [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
+    - 更多优质风格lora模型，可以参考 [Civitai](https://civitai.com/)
+  
+- 增加个性化prompt模块
+  - 描述：支持用户增加个性化的prompt，实现变装等效果
+  - 安装：参考 [安装指南](#安装指南)
+  - 用法：在“形象体验”页面选择给出的提示词示例。
+  - 效果（提示词：wearing an elegant evening gown）
+    ![image](resources/prompt_evening_gown.jpg)
+
 
 # 环境准备
 
@@ -48,9 +77,9 @@ FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机
 ### 1. 使用ModelScope提供的notebook环境【推荐】
 
     ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
-
+    
     如果初始免费计算资源无法满足要求，您还可以从上述页面开通付费流程，以便创建一个准备就绪的ModelScope(GPU) DSW镜像实例。
-
+    
     Notebook环境使用简单，您只需要按以下步骤操作（注意：目前暂不提供永久存储，实例重启后数据会丢失）：
 
 ```shell
