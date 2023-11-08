@@ -436,8 +436,10 @@ def get_previous_image_result(uuid):
     image_results_old = glob(os.path.join(save_dir_old, '**/single/*.png'), recursive=True)
     save_dir = os.path.join('.', uuid, 'inference_result')
     image_results = glob(os.path.join(save_dir, '**/single/*.png'), recursive=True)
-    # print(f"==>> image_results: {image_results}")
-    return image_results_old+image_results
+    save_dir_new = join_worker_data_dir(uuid, 'inference_result')
+    image_results_new = glob(os.path.join(save_dir_new, '**/single/*.png'), recursive=True)
+    
+    return image_results_old + image_results + image_results_new
     
 
 def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='crop', 
@@ -802,6 +804,22 @@ def update_output_model_inpaint(uuid):
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0]), gr.Radio.update(choices=folder_list, value=folder_list[0])
 
+def add_file_webcam(instance_images, file):
+    if file is None:
+        instance_images = [file_d['name'] for file_d in instance_images]
+        return instance_images
+    else:
+        instance_images = [file_d['name'] for file_d in instance_images] + [file]
+        return instance_images
+
+def webcam_image_open(image):
+    image = gr.update(visible=True)
+    return image 
+
+def webcam_image_close(image):
+    image = gr.update(value=None,visible=False)
+    return image 
+
 def update_output_model_tryon(uuid):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -969,12 +987,17 @@ def train_input():
                     with gr.Row():
                         upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
                                                         file_count="multiple")
+                        webcam = gr.Button("拍照上传")
 
                         clear_button = gr.Button("清空图片(Clear photos)")
+                    with gr.Row():
+                        image = gr.Image(source='webcam',type="filepath",visible=False).style(height=500,width=500)
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
                                          queue=False)
+                    webcam.click(webcam_image_open,inputs=image,outputs=image)
+                    image.change(add_file_webcam,inputs=[instance_images, image],outputs=instance_images, show_progress=True).then(webcam_image_close,inputs=image,outputs=image)
                     
                     gr.Markdown('''
                         使用说明（Instructions）：
@@ -1253,7 +1276,7 @@ def inference_talkinghead():
                 image_results = gr.Gallery(value=image_result_list, label='之前合成的图片(previous generated images)', allow_preview=False, columns=6, height=250)
                 update_button = gr.Button('刷新之前合成的图片(Refresh previous generated images)')
                 driven_audio = gr.Audio(label="驱动音频(driven audio)", source="upload", type="filepath")
-                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎大家使用阿里达摩院开源的facechain项目！")
+                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎使用魔搭开源的facechain项目！")
                 speaker = gr.Dropdown(choices=list(tts_speakers_map.keys()), value="普通话(中国大陆)-Xiaoxiao-女", label="请根据输入文本选择对应的语言和说话人(Select speaker according the language of input text)")
                 tts = gr.Button('生成音频(Generate audio)')
                 tts.click(fn=text_to_speech_edge, inputs=[input_text, speaker], outputs=[driven_audio])
@@ -1386,7 +1409,12 @@ for base_model in base_models:
     base_model['style_list'] = style_in_base
 
 with gr.Blocks(css='style.css') as demo:
-    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale},   [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    from importlib.util import find_spec
+    if find_spec('webui'):
+        # if running as a webui extension, don't display banner self-advertisement
+        gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation (\N{whale} [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    else:
+        gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale},   [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     gr.Markdown("##### <center> 本项目仅供学习交流，请勿将模型及其制作内容用于非法活动或违反他人隐私的场景。(This project is intended solely for the purpose of technological discussion, and should not be used for illegal activities and violating privacy of individuals.)</center>")
     with gr.Tabs():
         with gr.TabItem('\N{rocket}人物形象训练(Train Digital Twin)'):
