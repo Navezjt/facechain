@@ -6,14 +6,12 @@ import shutil
 import slugify
 import time
 from concurrent.futures import ProcessPoolExecutor
-from torch import multiprocessing
 import cv2
 import gradio as gr
 import numpy as np
 import torch
 from glob import glob
 import platform
-import subprocess
 from facechain.utils import snapshot_download, check_ffmpeg, set_spawn_method, project_dir, join_worker_data_dir
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
@@ -26,8 +24,8 @@ from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_pr
 training_done_count = 0
 inference_done_count = 0
 SDXL_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
-character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
-#character_model = 'ly261666/cv_portrait_model'
+#character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+character_model = 'ly261666/cv_portrait_model'
 BASE_MODEL_MAP = {
     "leosamsMoonfilm_filmGrain20": "写实模型(Realistic sd_1.5 model)",
     "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic sd_1.5 model)",
@@ -54,7 +52,7 @@ def concatenate_images(images):
 
 
 def select_function(evt: gr.SelectData):
-    name = evt.value[1] if isinstance(evt.value, list) else evt.value
+    name = evt.value[1] if isinstance(evt.value, (tuple, list)) else evt.value
     matched = list(filter(lambda item: name == item['name'], styles))
     style = matched[0]
     return gr.Text.update(value=style['name'], visible=True)
@@ -95,7 +93,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
     if platform.system() == 'Windows':
         if 'xl-base' in base_model_path:
             command = [
-                'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py',
+                'python', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py',
                 f'--pretrained_model_name_or_path={base_model_path}',
                 f'--revision={revision}',
                 f'--sub_path={sub_path}',
@@ -120,7 +118,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             ]
         else:
             command = [
-                'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py',
+                'python', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py',
                 f'--pretrained_model_name_or_path={base_model_path}',
                 f'--revision={revision}',
                 f'--sub_path={sub_path}',
@@ -144,6 +142,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
                 '--resume_from_checkpoint=fromfacecommon'
             ]
 
+        import subprocess
         try:
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
@@ -152,7 +151,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
     else:
         print(f'** project dir: {project_dir}')
         print(f'** params: >base_model_path:{base_model_path}, >revision:{revision}, >sub_path:{sub_path}, >output_img_dir:{output_img_dir}, >work_dir:{work_dir}, >lora_r:{lora_r}, >lora_alpha:{lora_alpha}')
-        import subprocess
 
         train_script_path = f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path == SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py'
 
@@ -238,6 +236,7 @@ def launch_pipeline(uuid,
                     pose_image=None,
                     sr_img_size=None,
                     cartoon_style_idx=None,
+                    use_lcm_idx=False
                     ):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -251,8 +250,9 @@ def launch_pipeline(uuid,
     set_spawn_method()
     # Check character LoRA
     tmp_character_model = base_models[base_model_index]['model_id']
-    if tmp_character_model != character_model:
-        tmp_character_model = 'ly261666/cv_portrait_model'
+    if tmp_character_model != 'AI-ModelScope/stable-diffusion-xl-base-1.0':
+        tmp_character_model = character_model
+
     folder_path = join_worker_data_dir(uuid, tmp_character_model)
     folder_list = []
     if os.path.exists(folder_path):
@@ -336,7 +336,7 @@ def launch_pipeline(uuid,
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx)
+                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx, use_lcm_idx=use_lcm_idx)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -631,6 +631,10 @@ def launch_pipeline_tryon(uuid,
     multiplier_style = 0.05
     multiplier_human = 0.95
 
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != character_model:
+        tmp_character_model = 'ly261666/cv_portrait_model'
+
     model_dir = snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.3')
     style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_frommajicreal.safetensors')
 
@@ -642,8 +646,8 @@ def launch_pipeline_tryon(uuid,
         user_model = None
 
     if user_model is not None:
-        instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
-        lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
+        instance_data_dir = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model)
+        lora_model_path = join_worker_data_dir(uuid, tmp_character_model, user_model)
     else:
         instance_data_dir = None
         lora_model_path = None
@@ -736,9 +740,10 @@ class Trainer:
         # Check Cuda Memory
         if torch.cuda.is_available():
             device = torch.device("cuda:0")
-            required_memory_bytes = 18 * (1024 ** 3) # 18GB
+            required_memory_bytes = 18 * (1024 ** 3)    # 18GB
             try:
-                tensor = torch.empty((required_memory_bytes // 4,), device = device) # create 18GB tensor to check the memory if enough
+                # create 18GB tensor to check the memory if enough
+                tensor = torch.empty((required_memory_bytes // 4,), device=device)
                 print("显存足够")
                 del tensor
             except RuntimeError as e:
@@ -851,7 +856,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/swift"
+                file_lora_path_swift = f"{file_path}/unet"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     
@@ -874,7 +879,7 @@ def update_output_model(uuid):
         else:
             uuid = 'qw'
     folder_list = []
-    for idx, tmp_character_model in enumerate(['ly261666/cv_portrait_model', character_model]):
+    for idx, tmp_character_model in enumerate(['AI-ModelScope/stable-diffusion-xl-base-1.0', character_model]):
         folder_path = join_worker_data_dir(uuid, tmp_character_model)
         if not os.path.exists(folder_path):
             continue
@@ -900,7 +905,7 @@ def update_output_model_inpaint(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, 'ly261666/cv_portrait_model')
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
         return gr.Radio.update(choices=[], value = None), gr.Dropdown.update(choices=style_list)
@@ -910,7 +915,7 @@ def update_output_model_inpaint(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/swift"
+                file_lora_path_swift = f"{file_path}/unet"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
 
@@ -940,7 +945,7 @@ def update_output_model_tryon(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, 'ly261666/cv_portrait_model')
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
         return gr.Radio.update(choices=[], value = None)
@@ -962,7 +967,7 @@ def init_output_model_tryon(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, 'ly261666/cv_portrait_model')
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
         choices = []
@@ -1217,7 +1222,14 @@ def inference_input():
                     out_img_size_list = ["512x512", "768x768", "1024x1024", "2048x2048"]
                     sr_img_size =  gr.Radio(label="输出分辨率选择(Output Image Size)", choices=out_img_size_list, type="index", value="512x512")
                     cartoon_style_idx =  gr.Radio(label="动漫风格选择", choices=['2D人像卡通', '3D人像卡通化'], type="index")
-
+                    with gr.Accordion("采样器选项(Sampler Options)", open=False):
+                        use_lcm_idx =  gr.Radio(label="是否使用LCM采样器", choices=['使用默认采样器', '使用LCM采样器'], type="index", value="使用默认采样器")
+                        gr.Markdown('''
+                        注意: 
+                        - 该实现是通过融合LCM-LoRA完成的，第一次使用会加载LCM-LoRA模型权重。
+                        - 目前LCM采样器对各种基模型适配效果仍有待提升，生成质量可能受到影响，需慎重使用。
+                        ''')
+                        
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, styles[0]['add_prompt_style']),
                                             interactive=True)
@@ -1308,7 +1320,7 @@ def inference_input():
                       queue=False)
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_choice, style_model, multiplier_style, multiplier_human,
-                                     pose_model, pose_image, sr_img_size, cartoon_style_idx],
+                                     pose_model, pose_image, sr_img_size, cartoon_style_idx, use_lcm_idx],
                              outputs=[infer_progress, output_images])
         history_button.click(fn=deal_history,
                              inputs=[uuid, base_model_index, user_model, lora_choice, style_model, load_history_text],
@@ -1342,8 +1354,8 @@ def inference_inpaint():
                     base_model_list.append(BASE_MODEL_MAP[base_model['name']])
 
                 base_model_index = gr.Radio(
-                    label="基模型选择(Base model list)",
-                    choices=base_model_list,
+                    label="基模型选择,暂不支持sdxl(Base model list, not support sdxl)",
+                    choices=base_model_list[:2],
                     type="index"
                 )
 
@@ -1474,11 +1486,19 @@ def inference_tryon():
                 base_model_list = []
                 for base_model in base_models:
                     base_model_list.append(BASE_MODEL_MAP[base_model['name']])
+                
+                base_model_index = gr.Radio(
+                    label="基模型选择,暂不支持sdxl(Base model list, not support sdxl)",
+                    choices=base_model_list[:2],
+                    type="index"
+                )
+
 
                 with gr.Row():
                     with gr.Column(scale=2):
-                        choices, value = init_output_model_tryon(uuid.value)
-                        user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=choices, type="value", value=value)
+                        #choices, value = init_output_model_tryon(uuid.value)
+                        #user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=choices, type="value", value=value)
+                        user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=[], type="value")
                     with gr.Column(scale=1):
                         update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
 
@@ -1511,6 +1531,11 @@ def inference_tryon():
                 label='输出(Output)',
                 show_label=False
             ).style(columns=3, rows=2, height=600, object_fit="contain")
+
+        base_model_index.change(fn=update_output_model_tryon,
+                            inputs=[uuid],
+                            outputs=[user_model],
+                            queue=False)
 
         update_button.click(fn=update_output_model_tryon,
                             inputs=[uuid],

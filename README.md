@@ -5,6 +5,10 @@
     <h1>FaceChain</h1>
 <p>
 
+# Breaking News
+
+Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! A new version with only 3 lines of change will be updated soon.
+
 # Introduction
 
 如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
@@ -23,6 +27,8 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! (January 16th, 2024 UTC)
+- 🏆OpenAtom's 2023 Rapidly Growing Open Source Projects Award. (December 20th, 2023 UTC)
 - Add SDXL pipeline🔥🔥🔥, image detail is improved obviously. (November 22th, 2023 UTC)
 - Support super resolution🔥🔥🔥, provide multiple resolution choice (512*512, 768*768, 1024*1024, 2048*2048). (November 13th, 2023 UTC)
 - 🏆FaceChain has been selected in the [BenchCouncil Open100 (2022-2023)](https://www.benchcouncil.org/evaluation/opencs/annual.html#Institutions) annual ranking. (November 8th, 2023 UTC)
@@ -73,7 +79,6 @@ Please cite FaceChain in your publications if it helps your research
 We have verified e2e execution on the following environment:
 - python: py3.8, py3.10
 - pytorch: torch2.0.0, torch2.0.1
-- tensorflow: 2.8.0, tensorflow-cpu
 - CUDA: 11.7
 - CUDNN: 8+
 - OS: Ubuntu 20.04, CentOS 7.9
@@ -107,6 +112,7 @@ print(os.getcwd())
 !pip3 install python-slugify
 !pip3 install onnxruntime==1.15.1
 !pip3 install edge-tts
+!pip3 install modelscope==1.10.0
 
 # Step4: Start the app service, click "public URL" or "local URL", upload your images to 
 # train your own model and then generate your digital twin.
@@ -141,6 +147,7 @@ pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 pip3 install onnxruntime==1.15.1
 pip3 install edge-tts
+pip3 install modelscope==1.10.0
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -181,8 +188,7 @@ python3 app.py
 
 *Note* For windows user, you should pay attention to following steps:
 ```shell
-1. reinstall  package pytorch and numpy compatible with tensorflow
-2. install mmcv-full by pip: pip3 install mmcv-full
+install mmcv-full by pip: pip3 install mmcv-full
 ```
 
 **If you want to use the `Audio Driven Talking Head` tab, please refer to the installation guide in [installation_for_talkinghead](doc/installation_for_talkinghead.md).**

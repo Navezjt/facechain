@@ -5,7 +5,9 @@
     <h1>FaceChain</h1>
 <p>
 
+# 最新消息
 
+与NUS团队合作的[InfoBatch](https://github.com/henryqin1997/InfoBatch) 被ICLR 2024(Oral)录用! pytorch中只用3行代码的版本PR中.
 
 # 介绍
 
@@ -22,12 +24,14 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- 与NUS团队合作的[InfoBatch](https://github.com/henryqin1997/InfoBatch) 被ICLR 2024(Oral)录用! pytorch中只用3行代码的版本PR中. (2024-01-16)
+- 🏆开放原子2023快速成长开源项目奖项. (2023-12-20)
 - 支持SDXL模块🔥🔥🔥，出图细腻度大幅提升. (November 22th, 2023 UTC)
 - 支持超分模块🔥🔥🔥，目前多种分辨率可选 (512*512, 768*768, 1024*1024, 2048*2048). (November 13th, 2023 UTC)
 - 🏆FaceChain入选[BenchCouncil Open100 (2022-2023)](https://www.benchcouncil.org/evaluation/opencs/annual.html#Institutions) 开源榜单. (2023-11-08)
 - 增加虚拟试衣模块，可基于包含给定服饰的模特图或人台图进行重绘. (2023-10-27)
 - 增加万相版本[在线免费应用](https://tongyi.aliyun.com/wanxiang/app/portrait-gallery). (2023-10-26)
-- 🏆1024程序员节AIGC应用工具最具商业价值奖 (2023-10-24)
+- 🏆1024程序员节AIGC应用工具最具商业价值奖. (2023-10-24)
 - stable-diffusion-webui支持🔥🔥🔥. (2023-10-13)
 - 高性能的(单人&双人)模版重绘功能，简化用户界面. (2023-09-09)
 - 更多技术细节可以在 [论文](https://arxiv.org/abs/2308.14256) 里查看. (2023-08-30)
@@ -67,10 +71,9 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 # 环境准备
 
 ## 兼容性验证
-FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机器学习框架，以下是已经验证过的主要环境依赖：
+FaceChain是一个组合模型，基于PyTorch机器学习框架，以下是已经验证过的主要环境依赖：
 - python环境: py3.8, py3.10
 - pytorch版本: torch2.0.0, torch2.0.1
-- tensorflow版本: 2.8.0, tensorflow-cpu
 - CUDA版本: 11.7
 - CUDNN版本: 8+
 - 操作系统版本: Ubuntu 20.04, CentOS 7.9
@@ -109,6 +112,7 @@ print(os.getcwd())
 !pip3 install python-slugify
 !pip3 install onnxruntime==1.15.1
 !pip3 install edge-tts
+!pip3 install modelscope==1.10.0
 
 # Step4: 启动服务，点击生成的URL即可访问web页面，上传照片开始训练和预测
 !python3 app.py
@@ -145,6 +149,7 @@ pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 pip3 install onnxruntime==1.15.1
 pip3 install edge-tts
+pip3 install modelscope==1.10.0
 
 # Step5: 获取facechain源代码
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -183,8 +188,7 @@ python3 app.py
 
 备注：如果是Windows环境还需要注意以下步骤：
 ```shell
-# 1. 重新安装pytorch、与tensorflow匹配的numpy
-# 2. pip方式安装mmcv-full: pip3 install mmcv-full
+# pip方式安装mmcv-full: pip3 install mmcv-full
 ```
 
 **如果您想要使用"人物说话视频生成"标签页的功能，请参考[installation_for_talkinghead_ZH](doc/installation_for_talkinghead_ZH.md)里的安装使用教程。**
