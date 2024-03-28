@@ -512,7 +512,7 @@ def launch_pipeline_inpaint(uuid,
 def get_previous_image_result(uuid):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-            return "请登陆后使用! (Please login first)"
+            return []
         else:
             uuid = 'qw'
 
@@ -1378,9 +1378,13 @@ def inference_inpaint():
             gr.Markdown('生成结果(Generated Results)')
             output_images = gr.Gallery(
                 label='输出(Output)',
-                show_label=False
-            ).style(columns=3, rows=2, height=600, object_fit="contain")
-
+                show_label=False,
+                columns=3,
+                rows=2,
+                height=600,
+                object_fit="contain"
+            )
+        
         base_model_index.change(fn=update_output_model_inpaint,
                                 inputs=[uuid],
                                 outputs=[user_model_A, user_model_B],
@@ -1529,8 +1533,12 @@ def inference_tryon():
             gr.Markdown('生成结果(Generated Results)')
             output_images = gr.Gallery(
                 label='输出(Output)',
-                show_label=False
-            ).style(columns=3, rows=2, height=600, object_fit="contain")
+                show_label=False,
+                columns=3,
+                rows=2,
+                height=600,
+                object_fit="contain"
+            )
 
         base_model_index.change(fn=update_output_model_tryon,
                             inputs=[uuid],
@@ -1588,4 +1596,7 @@ with gr.Blocks(css='style.css') as demo:
 
 if __name__ == "__main__":
     set_spawn_method()
-    demo.queue(status_update_rate=1).launch(share=True)
+    if os.path.exists("/.dockerenv"):
+        demo.queue(status_update_rate=1).launch(server_name="0.0.0.0", share=True)
+    else:
+        demo.queue(status_update_rate=1).launch(share=True)

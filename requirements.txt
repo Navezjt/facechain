@@ -1,7 +1,7 @@
 accelerate
 transformers
 onnxruntime==1.15.1
-diffusers>=0.23.0
+diffusers>=0.23.0,<0.26
 invisible-watermark>=0.2.0
 modelscope==1.10.0
 Pillow
@@ -18,5 +18,6 @@ controlnet_aux==0.0.6
 mediapipe
 python-slugify
 edge-tts
-
+facexlib
+gfpgan-patch
 # mmcv-full (need mim install)

@@ -7,7 +7,7 @@
 
 # 最新消息
 
-与NUS团队合作的[InfoBatch](https://github.com/henryqin1997/InfoBatch) 被ICLR 2024(Oral)录用! pytorch中只用3行代码的版本PR中.
+FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
 
 # 介绍
 
@@ -24,6 +24,8 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
+- 🏆🏆🏆阿里巴巴年度开源新锐项目、阿里巴巴年度开源先锋人物-技术贡献（刘洋）、阿里巴巴年度开源先锋人物-生态贡献（孙佰贵）. (2024-01-20)
 - 与NUS团队合作的[InfoBatch](https://github.com/henryqin1997/InfoBatch) 被ICLR 2024(Oral)录用! pytorch中只用3行代码的版本PR中. (2024-01-16)
 - 🏆开放原子2023快速成长开源项目奖项. (2023-12-20)
 - 支持SDXL模块🔥🔥🔥，出图细腻度大幅提升. (November 22th, 2023 UTC)
@@ -133,12 +135,12 @@ print(os.getcwd())
 
 # Step2: 将镜像下载到本地 （前提是已经安装了docker engine并启动服务，具体可参考： https://docs.docker.com/engine/install/）
 # For China Mainland users:
-docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
 # For users outside China Mainland:
-docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
+docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
 
 # Step3: 拉起镜像运行
-docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
+docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
 # 注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime
 # 1. 安装nvidia-container-runtime：https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 # 2. 重启docker服务：sudo systemctl restart docker
@@ -176,7 +178,9 @@ cd facechain
 
 pip3 install -r requirements.txt
 pip3 install -U openmim 
-mim install mmcv-full==1.7.0
+
+# 参考mmcv官方文档 https://mmcv.readthedocs.io/en/latest/get_started/installation.html
+mim install mmcv-full==1.7.2
 
 # 进入facechain文件夹，执行：
 python3 app.py
@@ -186,10 +190,6 @@ python3 app.py
 # 最后点击log中生成的URL即可访问页面。
 ```
 
-备注：如果是Windows环境还需要注意以下步骤：
-```shell
-# pip方式安装mmcv-full: pip3 install mmcv-full
-```
 
 **如果您想要使用"人物说话视频生成"标签页的功能，请参考[installation_for_talkinghead_ZH](doc/installation_for_talkinghead_ZH.md)里的安装使用教程。**
 
